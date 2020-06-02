@@ -5,13 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FloatInfo"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowStyle="None" AllowsTransparency="True" Foreground="White" Background="{x:Null}" Loaded="Window_Loaded">
+        Title="MainWindow" Height="200" Width="400" WindowStyle="None" AllowsTransparency="True" Foreground="White" Background="{x:Null}" Loaded="Window_Loaded" Topmost="True" ShowInTaskbar="False" WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <local:FloatInfoViewModel/>
     </Window.DataContext>
-    <Grid>
+    <Window.Resources>
+        <Storyboard x:Key="sbInfo">
+            <DoubleAnimation Storyboard.TargetName="labInfo" Storyboard.TargetProperty="Opacity" From="0.8" To="0"  Duration="0:0:0.5" >
+                
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+    <Grid Background="Black">
 
-        <Label Content="{Binding Info}" FontSize="72" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Label x:Name="labInfo" Content="{Binding Info}" FontSize="72" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
     </Grid>
 </Window>

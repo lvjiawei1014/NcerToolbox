@@ -28,6 +28,17 @@ namespace FloatInfo
         public void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         #endregion
+
+        #region win32 api
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)] static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")] extern static IntPtr GetKeyboardLayout(uint threadId);
+        [DllImport("imm32.dll")] extern static IntPtr ImmGetContext(IntPtr ptr);
+        [DllImport("imm32.dll")] extern static bool ImmGetConversionStatus(IntPtr ptr,ref uint concersion,ref uint sentence);
+
+
+        #endregion
+
+
         private string info="";
         private bool imeConversionModeNative = false;
         public string Info
@@ -40,11 +51,29 @@ namespace FloatInfo
         }
 
 
+        private bool GetImmConversionStatusNative()
+        {
+            uint conversion = 0;
+            uint sentence = 0;
+            IntPtr pFore = GetForegroundWindow();
+            System.Console.WriteLine(pFore.ToInt32());
+            if(!ImmGetConversionStatus(ImmGetContext(pFore), ref  conversion, ref sentence))
+            {
+                throw new Exception("获取输入法信息失败!");
+            }
+            System.Console.WriteLine(conversion);
+            return (conversion & 1)==1;
+        }
+
+
         public bool CheckCurrentInputStatusChanged(ref string info)
         {
-
-            var ret = InputMethod.Current.ImeConversionMode.HasFlag(ImeConversionModeValues.Native);
-            return ret != imeConversionModeNative;
+            //var ret = InputMethod.Current.ImeConversionMode.HasFlag(ImeConversionModeValues.Native);
+            var ret = this.GetImmConversionStatusNative();
+            var result = ret != imeConversionModeNative;
+            imeConversionModeNative = ret;
+            info = ret ? "中文" : "English";
+            return result;
         }
 
 
@@ -54,10 +83,18 @@ namespace FloatInfo
             while (true)
             {
                 await Task.Delay(100);
-                if(CheckCurrentInputStatusChanged(ref info))
+                try
                 {
-                    this.OnInfo?.Invoke(this,info);
+                    if (CheckCurrentInputStatusChanged(ref info))
+                    {
+                        this.OnInfo?.Invoke(this, info);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    this.OnInfo?.Invoke(this, ex.Message);
+                }
+                
             }
         }
     }
